@@ -1,0 +1,201 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int count1=0,source1;
+int row_min(int graph[][10],int vertices);
+int col_min(int graph[][10],int vertices);
+void TSP_BB(int vertices , int graph[][10],int source);
+void edges(int vertices , int graph[][10],int parent[],int source,int lowest_cost);
+int reduce(int vertices , int graph[][10],int temp[][10],int source,int destination);
+
+
+int main()
+{
+	int vertices,source;
+	int i=0,j=0;
+	
+	cout<<"\nEnter the number of the vertices : ";
+	cin>>vertices;
+	
+	int graph[10][10];
+	
+	for(i=0;i<vertices;i++)
+	{
+		for(j=0;j<vertices;j++)
+		{
+			cout<<"\nEnter the cost for V"<<i<<"-V"<<j<<" : ";
+			cin>>graph[i][j];
+			if(graph[i][j]==0)
+				graph[i][j]=INT_MAX;
+		}
+	}
+	
+	cout<<"\nEnter the sourec : ";
+	cin>>source1;
+	
+	cout<<"\nThe Path is :: "<<source1;
+	TSP_BB(vertices,graph,source1);
+	
+	
+	return 0;
+	
+}
+
+
+int row_min(int graph[][10],int vertices)
+{
+
+	int sum=0;
+	int min_row[vertices];
+	
+	for(int i=0;i<vertices;i++)
+		min_row[i]=INT_MAX;
+	
+	
+	//find min of all rows and subract from them
+	for(int i=0;i<vertices;i++)
+	{
+		for(int j=0;j<vertices;j++)
+		{
+			if( graph[i][j]!=INT_MAX && min_row[i] > graph[i][j] )
+				min_row[i] = graph[i][j];
+		}
+		
+		for(int j=0;j<vertices;j++)
+		{
+			if(min_row[i]!=INT_MAX && graph[i][j]!=INT_MAX)
+				graph[i][j] -= min_row[i]; 
+		}
+		
+		if(min_row[i]!=INT_MAX)
+			sum+=min_row[i];
+	}
+	
+	return sum;
+}
+
+int col_min(int graph[][10],int vertices)
+{
+
+	int sum=0;
+	int min_col[vertices];
+	
+	for(int i=0;i<vertices;i++)
+		min_col[i]=INT_MAX;
+	
+	//find min of all columns and subract from them
+	for(int i=0;i<vertices;i++)
+	{
+		for(int j=0;j<vertices;j++)
+		{
+			if( graph[j][i]!=INT_MAX && min_col[i] > graph[j][i] )
+				min_col[i] = graph[j][i];
+		}
+		
+		for(int j=0;j<vertices;j++)
+		{
+			if(min_col[i]!=INT_MAX && graph[j][i]!=INT_MAX)
+				graph[j][i] -= min_col[i]; 
+		}
+		
+		if(min_col[i]!=INT_MAX )
+			sum+=min_col[i];
+	}
+	
+	return sum;
+}
+
+void TSP_BB(int vertices , int graph[][10],int source)
+{
+	int lowest_cost=0,sumr=0,sumc=0;
+	int i=0,j=0,parent[vertices];
+	
+	for(i=0;i<vertices;i++)
+	{
+		parent[i]=-1;
+	}
+	
+	parent[source]=1;
+	
+	sumr = row_min(graph,vertices);
+	
+	sumc = col_min(graph,vertices);
+	
+	lowest_cost = sumr + sumc;
+	
+	//calculate cost of traelling from source to all other nodes not visited
+	edges(vertices,graph,parent,source,lowest_cost);
+}
+
+
+
+
+void edges(int vertices , int graph[][10],int parent[],int source,int lowest_cost)
+{
+	int i=0,j=0,cost=0,min=INT_MAX;
+	int src,dst;
+	int temp[10][10];
+	
+	for(i=0;i<vertices;i++)
+	{
+		if(parent[i]!=1)
+		{
+			cost = reduce(vertices,graph,temp,source,i);
+			
+			cost = cost + graph[source][i] + lowest_cost;
+			
+			if(min > cost)
+			{
+				min = cost;
+				src=source;
+				dst=i;
+			}
+		}
+	}
+	
+	count1++;
+	parent[dst]=1;
+	lowest_cost = min;
+	reduce(vertices,graph,temp,src,dst);
+	for(i=0;i<vertices;i++)
+	{
+		for(j=0;j<vertices;j++)
+		{
+			graph[i][j]=temp[i][j];
+		}
+	}
+	
+	cout<<" -> "<<dst;
+	
+	if(count1<vertices-1)
+		edges(vertices,graph,parent,dst,min);
+	else
+	{
+		cout<<" -> "<<source1;
+		cout<<"\nCost is : "<<min;
+	}
+	
+}
+
+
+int reduce(int vertices , int graph[][10] , int temp[][10],int source,int destination)
+{
+	int i=0,j=0;
+	
+	for(i=0;i<vertices;i++)
+	{
+		for(j=0;j<vertices;j++)
+		{
+			if(i==source || j==destination || (i==destination&&j==source))
+				temp[i][j]=INT_MAX;
+			else
+				temp[i][j]=graph[i][j];
+		}
+	}
+	
+	int sumr = row_min(temp,vertices);
+	int sumc = col_min(temp,vertices);
+	
+	return sumr+sumc;
+	
+}
