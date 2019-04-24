@@ -1,0 +1,241 @@
+#include<stdio.h>
+#include<string.h>
+#include<math.h>
+#include<stdlib.h>
+#include<ctype.h>
+int in_terminal(char str[])
+{	
+	FILE *trm;
+	char symbol[20],type[10];
+	int sno;
+	
+	trm=fopen("terminal.txt","r");
+	fscanf(trm,"%d%s%s",&sno,symbol,type);
+	while(!feof(trm))
+	{
+		if(strcmp(str,symbol)==0)
+		{
+			fclose(trm);
+			return sno;
+		}
+		fscanf(trm,"%d%s%s",&sno,symbol,type);
+	}
+	fclose(trm);
+	return 0;
+}
+
+int in_idn(char str[])
+{	
+	FILE *idn;
+	char symbol[20];
+	int ino;
+	
+	idn=fopen("identifier.txt","r");
+	fscanf(idn,"%d%s",&ino,symbol);
+	while(!feof(idn))
+	{
+		if(strcmp(str,symbol)==0)
+		{
+			fclose(idn);
+			return ino;
+		}
+		fscanf(idn,"%d%s",&ino,symbol);
+	}
+	fclose(idn);
+	return 0;
+}
+
+int is_num(char str[])
+{
+	int i=0,flag=1;
+	while(i<strlen(str))
+	{
+		if(!isdigit(str[i]))
+		{
+			if(str[i]!='.')
+				return 0;
+			else
+				++flag;
+		}
+		i++;
+	}
+	return flag;
+}
+
+int in_lit(char str[])
+{
+	FILE *lit;
+	int lno,length;
+	char name[20],n1[10],n2[10];
+	
+	lit=fopen("literal.txt","r");
+	fscanf(lit,"%d%s%s%s%d",&lno,name,n1,n2,&length);
+	while(!feof(lit))
+	{
+		//printf("\nhello");
+		if(strcmp(str,name)==0)
+		{
+			fclose(lit);
+			return lno;
+		}	
+		fscanf(lit,"%d%s%s%s%d",&lno,name,n1,n2,&length);
+	}
+	fclose(lit);
+	return 0;
+}
+
+
+void main()
+{
+	FILE *ip,*ust,*idn,*lit;
+	char ch[10],temp[20],temp1[50],buffer[5];
+	int i=0,uno=0,ino=0,lno=0,j=0,y=0;
+	
+	ip=fopen("prog.txt","r");
+	ust=fopen("ust.txt","w");
+	idn=fopen("identifier.txt","w");
+	fclose(idn);
+	lit=fopen("literal.txt","w");
+	fclose(lit);
+	
+	while(!feof(ip))
+	{
+				
+		ch[0]=fgetc(ip);
+		ch[1]='\0';
+	//	printf("\n ch[0]=%c \t ch[1]=%c",ch[0],ch[1]);
+		if(ch[0]=='"')
+		{	
+			ch[0]=fgetc(ip);
+			//temp1[j++]='"';
+			while(ch[0]!='"')
+			{	
+				if(ch[0]==' ')
+					temp1[j++]='_';
+				else
+					temp1[j++]=ch[0];
+				//printf("%s",ch);
+				ch[0]=fgetc(ip);	
+			}
+			//printf("hii\n");
+			//temp1[j++]='"';
+			temp1[j]='\0';
+			j=0;
+			printf("t=%s\n",temp1);
+			if(strcmp(temp1,"%d")!=0)
+			{
+				if(in_lit(temp1)==0)
+				{
+					lit=fopen("literal.txt","a");
+					fprintf(lit,"%d %s %s %s %ld\n",++lno,temp1,"STRING","FIXED",strlen(temp1));
+					fclose(lit);
+				}
+				//printf("\n%d",in_lit(temp1));
+				fprintf(ust,"%d %d %s LIT\n",++uno,in_lit(temp1),temp1);
+			}
+		}
+		if(in_terminal(ch)==0 && ch[0]!=' ' && ch[0]!='\n' &&ch[0]!='"' && ch[0]!='&')
+		{
+			temp[i]=ch[0];
+			i++;	
+			printf("\nin_terminal(ch)==0 temp=%s",temp);
+		}
+		
+		else if(in_terminal(ch)!=0 || ch[0]==' ' || ch[0]=='\n')
+		{
+			temp[i]='\0';
+			printf("\nin_terminal(ch)!=0 temp=%s",temp);			
+			i=0;
+			if(in_terminal(temp)!=0)
+				fprintf(ust,"%d %d %s KWD\n",++uno,in_terminal(temp),temp);
+			else if(temp[0]!='\0' && strcmp(temp,"\n")!=0 && !is_num(temp))
+			{	
+				if(in_idn(temp)==0)
+				{
+					idn=fopen("identifier.txt","a");
+					fprintf(idn,"%d %s\n",++ino,temp);
+					fclose(idn);
+					printf("\nidentifier");
+				}
+				fprintf(ust,"%d %d %s IDN\n",++uno,in_idn(temp),temp);
+			}
+			else if(temp[0]!='\0' && strcmp(temp,"\n")!=0 && is_num(temp) )
+			{
+				if(in_lit(temp)==0)
+				{	lit=fopen("literal.txt","a");
+					if(is_num(temp)==1)			
+						fprintf(lit,"%d %s %s %s %ld\n",++lno,temp,"INTEGER","FIXED",strlen(temp));
+					else
+						fprintf(lit,"%d %s %s %s %ld\n",++lno,temp,"DECIMAL","FIXED",strlen(temp));
+
+					fclose(lit);
+					//printf("\nliteral");
+				}
+				fprintf(ust,"%d %d %s LIT\n",++uno,in_lit(temp),temp);
+			}
+			if(ch[0]=='+')
+			{
+				buffer[0]=fgetc(ip);
+				if(buffer[0]==ch[0])
+				{
+					fprintf(ust,"%d 25 ++ TER\n",++uno);
+				}
+				else
+				{
+					fprintf(ust,"%d %d %s TER\n",++uno,in_terminal(ch),ch);
+					fseek(ip,-1,SEEK_CUR);
+				}
+				
+			}
+			else
+			{			
+				if(ch[0]!=' ' && ch[0]!='\n')
+					fprintf(ust,"%d %d %s TER\n",++uno,in_terminal(ch),ch);
+			}    		
+		}
+		
+	}
+	fclose(ip);
+	fclose(ust);
+}
+/*
+void main()
+{
+int diameter=11,circumference=30;
+float area=0;
+char str[10]="triangle";
+char str1[10]="circle";
+clrscr();
+scanf("%d",&radius);
+area =3.14*diameter*diameter/4;
+printf("Area= ",area);
+printf("successful result");
+getch();
+}
+*/
+/*1 + Y
+2 - Y
+3 * Y
+4 / Y
+5 % Y
+6 ^ Y
+7 ; Y
+8 , Y
+9 ( Y
+10 ) Y
+11 { Y
+12 } Y
+13 = Y
+14 ] Y
+15 [ Y
+25 ++ Y
+26 -- Y
+16 int N
+17 float N
+18 char N
+19 void N
+20 main N
+21 printf N
+22 scanf N
+23 clrscr N
+24 getch N*/
