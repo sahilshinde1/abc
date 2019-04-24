@@ -1,0 +1,75 @@
+
+%{
+#include "y.tab.h"
+extern int yylval;
+%}
+id [_A-Z][_A-Z0-9]*
+%%
+[0-9]+ { yylval = atoi (yytext);
+printf ("Scanned the number %d\n", yylval);
+return NUMBER; }
+{id} {return NAME;}
+[ \t] { printf ("Skipped Whitespace!!\n"); }
+\n { printf ("Reached end of line!!\n");
+return 0;
+}
+[a-z]+ { printf("Enter the value for %s: ", yytext);
+scanf("%d", &yylval);
+return VAR;
+}
+. { printf ("Found Other Data \"%s\"\n", yytext);
+return yytext[0];
+}
+%%
+
+
+//ACC FILE:b.y
+
+%{
+#include <stdio.h>
+
+int i;
+%}
+%token NAME NUMBER VAR
+%left '-' '+'
+%left '*' '/'
+%nonassoc UMINUS
+%right '^'
+%%
+statement: NAME '=' expression { printf("Pretending to assign %s the value %d\n", $1, $3); }
+| expression { printf("= %d\n", $1); }
+;
+expression: expression '+' expression { $$ = $1 + $3; printf ("Recognized '+' expression.\n"); }
+| expression '-' expression { $$ = $1 - $3; printf ("Recognized '-' expression.\n"); }
+| expression '*' expression { $$ = $1 * $3; printf ("Recognized '*' expression.\n"); }
+| expression '/' expression { if ($3 == 0) yyerror ("Divide By Zero Error!!");
+else $$ = $1 / $3; printf ("Recognized '/' expression.\n");
+}
+| '-' expression %prec UMINUS { $$ = - $2; printf ("Recognized negation.\n"); }
+| '(' expression ')' { $$ = $2; printf ("Recognized parenthesized expression.\n"); }
+| expression '^' expression { for(i=0; i<$2;i++) $$=$$*$1; printf("Exponentiation Operation
+is done!!\n");}
+| NUMBER { $$ = $1; printf ("Recognized a number.\n"); }
+| VAR { $$ = $1; printf("Number entered\n"); }
+;
+%%
+int main (void)
+{
+printf("\nEnter the Mathematical Expression : ");
+return yyparse();
+}
+/* Added because panther doesn't have liby.a installed. */
+int yyerror (char *msg)
+{
+return fprintf (stderr, "YACC: %s\n", msg);
+}
+yywrap(){
+}
+
+/*
+flex a.l
+yacc -d b.y
+cc -c lex.yy.c y.tab.c
+cc lex.yy.o y.tab.o
+./a.out
+*/
