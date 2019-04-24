@@ -1,0 +1,187 @@
+
+#include<iostream>
+#include<bits/stdc++.h>
+using namespace std;
+
+int row_reduction(int mat[][10],int n);
+int col_reduction(int mat[][10],int n);
+int reduce(int mat[][10],int temp[][10],int n,int src,int dest);
+int tspbandb(int mat[][10],int n,int src);
+int edges(int mat[][10],int parent[],int n,int src,int lowcost);
+
+int count1=0,source1=0;
+
+int main()
+{
+	int mat[10][10];
+	int n,src;
+	cout<<"\n\tEnter the no. of vertices::";
+	cin>>n;
+	cout<<"\n\tEnter matrix::";
+	for(int i=0;i<n;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			cin>>mat[i][j];
+			if(mat[i][j]==0)
+				mat[i][j]=INT_MAX;
+		}
+	}
+	
+	cout<<"\n\tEnter source::";
+	cin>>src;
+
+	for(int i=0;i<n;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			if(mat[i][j]==0)
+				mat[i][j]=INT_MAX;
+		}
+	}
+	
+	source1=0;
+	cout<<source1;
+	tspbandb(mat,n,source1);
+	
+	return 0;
+}
+
+int tspbandb(int mat[][10],int n,int src)
+{
+	int parent[n],lowcost;
+	
+	for(int i=0;i<n;i++)
+	{
+		parent[i]=-1;
+	}
+	
+	parent[0]=1;
+	
+	int sumr=row_reduction(mat,n);
+	int sumc=col_reduction(mat,n);
+	
+	lowcost=sumr+sumc;
+	int temp[10][10];
+	//reduce(mat,temp,n,0,2);
+	edges(mat,parent,n,src,lowcost);
+}
+
+int edges(int mat[][10],int parent[10],int n,int src,int lowcost)
+{
+	int temp[10][10];
+	int min=INT_MAX;
+	int source,dest;
+	int cost;
+	
+	for(int i=0;i<n;i++)
+	{
+		if(parent[i]!=1)
+		{
+			cost=reduce(mat,temp,n,src,i);
+			cost=cost+mat[src][i]+lowcost;
+			
+			if(min>cost)
+			{
+				min=cost;
+				source=src;
+				dest=i;
+			}
+		}
+	}
+	
+	count1++;
+	cout<<"-->"<<dest;
+	lowcost=min;
+	parent[dest]=1;
+	reduce(mat,temp,n,source,dest);
+	for(int i=0;i<n;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+		
+			mat[i][j]=temp[i][j];
+		}
+	}
+	
+	if(count1<n-1)
+		edges(mat,parent,n,dest,min);
+	else
+	{
+		cout<<"-->"<<source1;
+		cout<<"MIN COST::"<<min;
+	}
+
+}
+
+int reduce(int mat[][10],int temp[][10],int n,int src,int dest)
+{
+	for(int i=0;i<n;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			if(i==src ||j==dest ||(i==dest && j==src))
+			{
+				temp[i][j]=INT_MAX;
+			}
+			else
+				temp[i][j]=mat[i][j];
+		}
+	}
+	
+	int sumr=row_reduction(temp,n);
+	int sumc=col_reduction(temp,n);
+	return sumr+sumc;
+}
+
+int row_reduction(int mat[][10],int n)
+{
+	int sum=0;
+	int min=INT_MAX;
+	for(int i=0;i<n;i++)
+	{	
+		min=INT_MAX;
+		for(int j=0;j<n;j++)
+		{
+			if(mat[i][j]!=INT_MAX && mat[i][j]<min)
+				min=mat[i][j];
+		}
+		//cout<<"\n";
+		for(int j=0;j<n;j++)
+		{
+			if(mat[i][j]!=INT_MAX)
+				mat[i][j]=mat[i][j]-min;
+			//cout<<mat[i][j]<<" ";
+		}	
+		if(min!=INT_MAX)
+			sum=sum+min;	
+	}
+	
+	return sum;
+}
+
+int col_reduction(int mat[][10],int n)
+{
+	int sum=0;
+	int min=INT_MAX;
+	for(int i=0;i<n;i++)
+	{	
+		min=INT_MAX;
+		for(int j=0;j<n;j++)
+		{
+			if(mat[j][i]!=INT_MAX && mat[j][i]<min)
+				min=mat[j][i];
+		}
+		
+		for(int j=0;j<n;j++)
+		{
+			if(mat[j][i]!=INT_MAX)
+				mat[j][i]=mat[j][i]-min;
+		}	
+		if(min!=INT_MAX)
+			sum=sum+min;	
+	}
+	
+	return sum;
+}
+
