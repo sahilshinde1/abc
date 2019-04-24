@@ -1,0 +1,76 @@
+#include<stdio.h>
+#define EDGE 100
+#define NODE 10
+void main()
+{
+	int edge[EDGE][3];
+	int d[NODE];
+	int i,j,k,l,u,v,wt,n,maxedge,edgecount=0;
+	int ch;
+	printf("\nEnter the number of nodes");
+	scanf("%d",&n);
+	
+	d[0]=0;
+	for(k=1;k<n;k++)
+		d[k]=999;
+	
+	printf("\ndistance of nodes:\t");
+	for(k=0;k<n;k++)
+		printf("%d ",d[k]);
+	maxedge=n*(n-1)/2;
+	printf("\nmax edges:%d",maxedge);
+	i=-1;
+	do
+	{
+		++edgecount;
+		printf("\nEnter the starting vertex:");
+		scanf("%d",&edge[++i][0]);
+		printf("\nEnter the dest vertex:");
+		scanf("%d",&edge[i][1]);
+		printf("\nEnter the weight:");
+		scanf("%d",&edge[i][2]);
+		
+		printf("\nDo you want to add more edge(1/0)");
+		scanf("%d",&ch);
+		
+	}while(ch==1 && edgecount<maxedge);
+	
+	printf("\nstart\tend\tweight");
+	for(j=0;j<=i;j++)
+	{
+		printf("\n%d\t%d\t%d",edge[j][0],edge[j][1],edge[j][2]);
+	}
+		
+	for(k=0;k<n-1;k++)
+	{
+		
+		for(j=0;j<=i;j++)
+		{
+			u=edge[j][0];
+			v=edge[j][1];
+			wt=edge[j][2];
+			if(d[v]>d[u]+wt)
+			{
+				d[v]=d[u]+wt;
+			}
+		}
+		printf("\niteration %d: ",k);
+		for(l=0;l<n;l++)
+		printf("%d ",d[l]);
+	}
+		
+	for(j=0;j<=i;j++)
+		{
+			u=edge[j][0];
+			v=edge[j][1];
+			wt=edge[j][2];
+			if(d[v]>d[u]+wt)
+			{
+				printf("\nBellman-Ford Algorithm fails");
+				break;
+			}	
+		}
+		
+		
+		
+}
