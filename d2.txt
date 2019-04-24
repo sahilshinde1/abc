@@ -1,0 +1,110 @@
+#include<stdio.h>
+typedef struct prog
+{
+	int id;
+	int len;
+}prog;
+void heap(struct prog a[],int n)
+{
+	int i=0,x=0,flag=0;
+	struct prog temp;
+while(i<n)
+    {
+	flag=0;
+	if((i*2+1)<n)	
+	{	
+		if(a[i].len<a[i*2+1].len)
+        	{
+            		temp=a[i];
+            		a[i]=a[i*2+1];
+            		a[i*2+1]=temp;
+			i=0;
+		
+			flag=1;
+      
+        	}
+	}        
+	if((i*2+2)<n)	
+	{
+		if(a[i].len<a[i*2+2].len)
+        	{
+            		temp=a[i];
+            		a[i]=a[i*2+2];
+            		a[i*2+2]=temp;
+			i=0;
+			flag=1;
+	        }
+	
+	}	
+	if(flag!=1)
+		i++;
+	
+   }
+	
+}
+void heapsort(struct prog a[],int n)
+{
+	int i;
+	struct prog temp;
+	for(i=1;i<=n;i++)
+	{
+		heap(a,n-i+1);
+		temp=a[0];
+		a[0]=a[n-i];
+		a[n-i]=temp;		
+	}
+}
+int main()
+{
+    prog p[20];
+	int tape[5];
+    int i=0,t=3,n,wait=0,time=0,total=0,id,tno=1;
+	float avg=0;
+    printf("\n enter number of program");
+    scanf("%d",&n);
+    
+    for(i=0;i<n;i++)
+        {
+		printf("\n enter id and length of program %d:",i+1);		
+		scanf("%d",&p[i].id);
+		scanf("%d",&p[i].len);
+	}    
+	heapsort(p,n);
+    for(i=0;i<n;i++)
+        printf("\n%d %d\t",p[i].id,p[i].len);
+
+	for(i=0;i<n;i++)
+	{
+		tape[i%t]=p[i].id;
+		time=wait+p[i].len;
+		wait=time;
+		total=total+time;
+		if(i%t==2)
+		{
+			time=0;
+			wait=0;
+		}
+	}
+	printf("\ntotal time=%d\n",total);
+	avg=(float)total/n;	
+	printf("\n average=%f",avg);
+	printf("\nenter id to be searched:");
+	scanf("%d",&id);
+	for(i=0;i<n;i++)
+	{
+		if(tno>3)
+			tno=1;
+				
+		if(p[i].id==id)
+		{
+			break;
+		}
+		else
+			tno++;
+		
+	}
+	printf("\nprogram present on tape:%d",tno);
+		
+}
+
+
