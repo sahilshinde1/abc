@@ -1,0 +1,83 @@
+/*
+S->(S)S’|aS’
+S’->+SS’|SS’|*SS’/null
+*/
+#include<stdio.h>
+#include<string.h>
+
+
+
+char input[10];
+int i=0,error=0;
+
+void S();
+
+void A()
+{
+	if(input[i]=='+')
+	{
+		i++;
+		printf("S->+SS'\n");
+		S();
+		A();
+		
+	}
+	else if(input[i]=='*')
+	{
+		i++;
+		printf("S->*SS'\n");
+		S();
+		A();
+	}
+	else if(input[i]=='(' || input[i]=='a')
+	{
+		printf("S->SS'\n");
+		S();
+		A();
+	}
+	else
+	{
+		printf("S->~\n");
+		return;
+	}
+}
+
+void S()
+{
+	if(input[i]=='(')
+	{
+		i++;
+		printf("S->(S)\n");
+		S();
+		if(input[i]==')')
+		{
+			i++;
+			A();
+		}
+	}
+	else if(input[i]=='a')
+	{	
+		if(input[i]=='a')
+		{
+			i++;
+			printf("S'->aS'\n");
+			A();
+		}
+		
+	}
+	else
+		error=1;
+}
+
+void main()
+{
+	printf("Enter String to be parsed:");
+	scanf("%s",&input);
+	S();	
+	
+	if(input[i]=='\0' && error==0)
+		printf("\nSuccess");
+	else
+		printf("\nerror");	
+}
+
