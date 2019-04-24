@@ -1,0 +1,180 @@
+/*
+-- (AD,01) (c,200) (-,-)
+200 (IS,01) (R,1) (L,1)
+201 (IS,02) (R,1) (S,1)
+202 (IS,01) (R,1) (S,1)
+203 (IS,01) (R,3) (L,2)
+204 (IS,03) (R,3) (L,2)
+205 (IS,12) (06)  (S,3)
+-- (AD,03) (-,-) (-,-)
+206 ='5'
+207 ='1'
+208 (IS,04) (R,1) (L,3)
+209 (IS,12) (03)  (S,4)
+210 (IS,09) (-,-) (-,-)
+211 (IS,04) (R,1) (L,4)
+--- (AD,05) (S,2)+2 (-,-)
+204 (IS,05) (R,3) (S,6)
+-- (AD,03) (-,-) (-,-)
+205 ='1'
+206 ='2'
+--- (AD,05) (S,5)+1 (-,-)
+--- (AD,04) (S,2) (-,-)
+-- (AD,03) (-,-) (-,-)
+211 (IS,01) (R,1) (L,5)
+212 (DL,02) (C,10) (-,-)
+213 (DL,01) (C,10) (-,-)
+--- (AD,02) (-,-) (-,-)
+224 ='2'
+
+*/
+/*
+ 1     A 212  -1  10
+ 2 LOOP 202  -1  -1
+ 3  NEXT  208 -1  -1
+ 4  BACK  202 -1  -1
+ 5 LAST 210  -1  -1
+ 6     B   213  10-1
+
+*/
+/*
+1  ='5' 206
+2  ='1' 207
+3  ='1' 205
+4  ='2' 206
+5  ='2' 224
+*/
+#include<stdio.h>
+#include<unistd.h>
+#include<string.h>
+
+typedef struct icode{
+	char address[10];
+	char mnemonics[10];
+	char operand1[10];
+	char operand2[10];
+}icode;
+
+typedef struct symbol{
+	int serial_no;
+	char symbol_name[10];
+	int address;
+	int length;
+	int value;
+}symbol;
+
+typedef struct literal{
+	int serial_no;
+	char literal_name[10];
+	int address;
+}literal;
+
+int search_symtbl(int iop11)
+{
+	int addr=-1;
+	FILE *fsym;
+	symbol sym;
+	fsym=fopen("symbol1.txt","r");
+	fscanf(fsym,"%d %s %d %d %d",&sym.serial_no,sym.symbol_name,&sym.address,&sym.length,&sym.value);
+	while(!feof(fsym))
+	{
+		if(sym.serial_no==iop11)
+		{
+			addr=sym.address;
+			break;
+		}				
+	fscanf(fsym,"%d %s %d %d %d",&sym.serial_no,sym.symbol_name,&sym.address,&sym.length,&sym.value);
+	}						
+	fclose(fsym);
+	return addr;				
+}
+
+int main()
+{
+	FILE *fsym,*fic,*flit,*ftc;
+	icode ic;
+	symbol sym;
+	literal lit;
+	int i,addr,iop11,addr2,iop22;
+	char m1[20],m2[3],mnem[3],op1[2],op11[2],op2[2],op22[2];
+
+	ftc=fopen("tc.txt","w");
+	fic=fopen("ic2.txt","r");
+	fscanf(fic,"%s %s %s %s",ic.address,ic.mnemonics,ic.operand1,ic.operand2);
+	while(!feof(fic))
+	{
+		if(ic.mnemonics[0]!='=')
+		{
+			strcpy(m1,(strtok(ic.mnemonics,",")));	
+			if(strcmp(m1,"(IS")==0)
+			{
+				strcpy(m2,(strtok(NULL,")")));
+				m2[strlen(m2)]='\0';
+				if(strcmp(ic.operand1,"*")!=0)
+				{			
+					if(ic.operand1[2]==',')
+					{
+						strcpy(op1,strtok(ic.operand1,","));
+						strcpy(op11,strtok(NULL,")"));
+						iop11=atoi(op11);
+						if(op1[1]=='S')
+							addr=search_symtbl(iop11);
+						else
+							addr=iop11;
+					}
+					else 
+					{
+						for(i=1;i<=2;i++)
+							op1[i-1]=ic.operand1[i];
+						op1[i-1]='\0';
+						addr=atoi(op1);
+					}
+					if(strcmp(ic.operand2,"*")!=0)
+					{						
+						strcpy(op2,strtok(ic.operand2,","));
+						strcpy(op22,strtok(NULL,")"));
+						iop22=atoi(op22);
+
+						if(op2[1]=='S')
+							addr2=search_symtbl(iop22);
+						else 
+						{
+							flit=fopen("literal1.txt","r");
+							fscanf(flit,"%d %s %d",&lit.serial_no,lit.literal_name,&lit.address);
+							while(!feof(flit))
+							{
+								if(lit.serial_no==iop22)
+								{
+									addr2=lit.address;
+									break;
+								}
+								fscanf(flit,"%d %s %d",&lit.serial_no,lit.literal_name,&lit.address);
+							}
+							fclose(flit);
+						}//else lit
+						printf("\n%s",mnem);
+						fprintf(ftc,"%4d %10s %4d %4d\n",atoi(ic.address),m2,addr,addr2);
+					}//op2!=*
+					else
+						fprintf(ftc,"%4d %10s %4d    -\n",atoi(ic.address),m2,addr);
+				}//op1!=*
+				else
+					fprintf(ftc,"%4d %10s    -    -\n",atoi(ic.address),m2);
+			}//if IS
+			else if(strcmp(m1,"(DL")==0)	
+			{
+				strcpy(op1,strtok(ic.operand1,","));   
+				strcpy(op11,strtok(NULL,")"));   
+				iop11=atoi(op11);  
+				fprintf(ftc,"%4d          0 %4d    -\n",atoi(ic.address),addr);    
+			}
+		}//if
+		else
+			fprintf(ftc,"%4d %10s    -    -\n",atoi(ic.address),ic.mnemonics);	
+		
+		fscanf(fic,"%s %s %s %s",ic.address,ic.mnemonics,ic.operand1,ic.operand2);
+	}//while fic
+	fclose(fic);
+	fclose(ftc);
+	return 0;
+}
