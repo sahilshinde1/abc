@@ -1,0 +1,67 @@
+
+#include<stdio.h>
+
+void maxmin(int arr[20],int i,int j,int *max,int *min)
+{
+	int mid;
+	int min1,max1,min2,max2;
+
+	
+	if(i==j)
+		*max=*min=arr[i];
+	else if(j==(i+1))
+	{
+		if(arr[i]>arr[j])
+		{
+			*max=arr[i];
+			*min=arr[j];
+		}
+		else
+		{
+			*min=arr[i];
+			*max=arr[j];
+		}
+	}
+	else
+	{
+		mid=(i+j)/2;
+		maxmin(arr,i,mid,&max1,&min1);
+		maxmin(arr,mid+1,j,&max2,&min2);
+		
+		if(min1<=min2)
+			*min=min1;
+		else
+			*min=min2;
+			
+		if(max1>max2)
+			*max=max1;
+		else
+			*max=max2;
+		
+	}
+}
+
+void main()
+{
+
+	int array[20];
+	int min=99,max=0;
+	int n,x;
+	
+	
+	printf("\nEnter Size of array:\n");
+	scanf("%d",&n);
+	
+	
+	printf("\nEnter Elements of array:\n");
+	
+	for(x=0;x<n;x++)
+		scanf("%d",&array[x]);
+	
+	
+	maxmin(array,0,n-1,&max,&min);
+	
+	printf("\n***************\nMax: %d\nMin: %d\n***************\n",max,min);
+	
+
+}
