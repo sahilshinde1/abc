@@ -1,187 +1,55 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 16 19:53:00 2019
 
-#include<iostream>
-#include<bits/stdc++.h>
-using namespace std;
+@author: hp
+"""
 
-int row_reduction(int mat[][10],int n);
-int col_reduction(int mat[][10],int n);
-int reduce(int mat[][10],int temp[][10],int n,int src,int dest);
-int tspbandb(int mat[][10],int n,int src);
-int edges(int mat[][10],int parent[],int n,int src,int lowcost);
+import numpy as np
+#Input array
+X=np.array([[1,0,1,0],[1,0,1,1],[0,1,0,1]])
 
-int count1=0,source1=0;
+#Output
+y=np.array([[1],[1],[0]])
 
-int main()
-{
-	int mat[10][10];
-	int n,src;
-	cout<<"\n\tEnter the no. of vertices::";
-	cin>>n;
-	cout<<"\n\tEnter matrix::";
-	for(int i=0;i<n;i++)
-	{
-		for(int j=0;j<n;j++)
-		{
-			cin>>mat[i][j];
-			if(mat[i][j]==0)
-				mat[i][j]=INT_MAX;
-		}
-	}
-	
-	cout<<"\n\tEnter source::";
-	cin>>src;
+#Sigmoid Function
+def sigmoid (x):
+      return  1/(1 + np.exp(-x))
 
-	for(int i=0;i<n;i++)
-	{
-		for(int j=0;j<n;j++)
-		{
-			if(mat[i][j]==0)
-				mat[i][j]=INT_MAX;
-		}
-	}
-	
-	source1=0;
-	cout<<source1;
-	tspbandb(mat,n,source1);
-	
-	return 0;
-}
+#Derivative of Sigmoid Function
+def derivatives_sigmoid(x):
+       return x * (1 - x)
 
-int tspbandb(int mat[][10],int n,int src)
-{
-	int parent[n],lowcost;
-	
-	for(int i=0;i<n;i++)
-	{
-		parent[i]=-1;
-	}
-	
-	parent[0]=1;
-	
-	int sumr=row_reduction(mat,n);
-	int sumc=col_reduction(mat,n);
-	
-	lowcost=sumr+sumc;
-	int temp[10][10];
-	//reduce(mat,temp,n,0,2);
-	edges(mat,parent,n,src,lowcost);
-}
+#Variable initialization
+epoch=5000 #Setting training iterations
+lr=0.1 #Setting learning rate
+inputlayer_neurons = X.shape[1] #number of features in data set
+hiddenlayer_neurons = 3 #number of hidden layers neurons
+output_neurons = 1 #number of neurons at output layer
 
-int edges(int mat[][10],int parent[10],int n,int src,int lowcost)
-{
-	int temp[10][10];
-	int min=INT_MAX;
-	int source,dest;
-	int cost;
-	
-	for(int i=0;i<n;i++)
-	{
-		if(parent[i]!=1)
-		{
-			cost=reduce(mat,temp,n,src,i);
-			cost=cost+mat[src][i]+lowcost;
-			
-			if(min>cost)
-			{
-				min=cost;
-				source=src;
-				dest=i;
-			}
-		}
-	}
-	
-	count1++;
-	cout<<"-->"<<dest;
-	lowcost=min;
-	parent[dest]=1;
-	reduce(mat,temp,n,source,dest);
-	for(int i=0;i<n;i++)
-	{
-		for(int j=0;j<n;j++)
-		{
-		
-			mat[i][j]=temp[i][j];
-		}
-	}
-	
-	if(count1<n-1)
-		edges(mat,parent,n,dest,min);
-	else
-	{
-		cout<<"-->"<<source1;
-		cout<<"MIN COST::"<<min;
-	}
+#weight and bias initialization
+wh=np.random.uniform(size=(inputlayer_neurons,hiddenlayer_neurons))
+bh=np.random.uniform(size=(1,hiddenlayer_neurons))
+wout=np.random.uniform(size=(hiddenlayer_neurons,output_neurons))
+bout=np.random.uniform(size=(1,output_neurons))
+for i in range(epoch):
+#Forward Propogation
+    hidden_layer_input1=np.dot(X,wh)
+    hidden_layer_input=hidden_layer_input1 + bh
+    hiddenlayer_activations = sigmoid(hidden_layer_input)
+    output_layer_input1=np.dot(hiddenlayer_activations,wout)
+    output_layer_input= output_layer_input1+ bout
+    output = sigmoid(output_layer_input)
 
-}
-
-int reduce(int mat[][10],int temp[][10],int n,int src,int dest)
-{
-	for(int i=0;i<n;i++)
-	{
-		for(int j=0;j<n;j++)
-		{
-			if(i==src ||j==dest ||(i==dest && j==src))
-			{
-				temp[i][j]=INT_MAX;
-			}
-			else
-				temp[i][j]=mat[i][j];
-		}
-	}
-	
-	int sumr=row_reduction(temp,n);
-	int sumc=col_reduction(temp,n);
-	return sumr+sumc;
-}
-
-int row_reduction(int mat[][10],int n)
-{
-	int sum=0;
-	int min=INT_MAX;
-	for(int i=0;i<n;i++)
-	{	
-		min=INT_MAX;
-		for(int j=0;j<n;j++)
-		{
-			if(mat[i][j]!=INT_MAX && mat[i][j]<min)
-				min=mat[i][j];
-		}
-		//cout<<"\n";
-		for(int j=0;j<n;j++)
-		{
-			if(mat[i][j]!=INT_MAX)
-				mat[i][j]=mat[i][j]-min;
-			//cout<<mat[i][j]<<" ";
-		}	
-		if(min!=INT_MAX)
-			sum=sum+min;	
-	}
-	
-	return sum;
-}
-
-int col_reduction(int mat[][10],int n)
-{
-	int sum=0;
-	int min=INT_MAX;
-	for(int i=0;i<n;i++)
-	{	
-		min=INT_MAX;
-		for(int j=0;j<n;j++)
-		{
-			if(mat[j][i]!=INT_MAX && mat[j][i]<min)
-				min=mat[j][i];
-		}
-		
-		for(int j=0;j<n;j++)
-		{
-			if(mat[j][i]!=INT_MAX)
-				mat[j][i]=mat[j][i]-min;
-		}	
-		if(min!=INT_MAX)
-			sum=sum+min;	
-	}
-	
-	return sum;
-}
-
+#Backpropagation
+E = y-output
+slope_output_layer = derivatives_sigmoid(output)
+slope_hidden_layer = derivatives_sigmoid(hiddenlayer_activations)
+d_output = E * slope_output_layer
+Error_at_hidden_layer = d_output.dot(wout.T)
+d_hiddenlayer = Error_at_hidden_layer * slope_hidden_layer
+wout += hiddenlayer_activations.T.dot(d_output) *lr
+bout += np.sum(d_output, axis=0,keepdims=True) *lr
+wh += X.T.dot(d_hiddenlayer) *lr
+bh += np.sum(d_hiddenlayer, axis=0,keepdims=True) *lr
+print (output)
