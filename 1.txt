@@ -1,770 +1,229 @@
 /*
-* START 200 *
-* MOVER AREG ='5'
-* MOVEM AREG A
-LOOP MOVER AREG A
-* MOVER CREG ='1'
-* ADD CREG ='1'
-* BC GE NEXT
-* LTORG * *
-NEXT SUB AREG ='1'
-* BC LT BACK
-LAST STOP * *
-* SUB AREG ='2'
-* ORIGIN LOOP+2 *
-* MULT CREG B
-* LTORG * *
-* ORIGIN LAST+1 *
-BACK EQU LOOP *
-* LTORG * *
-* MOVER AREG ='2'
-A DC 10 *
-B DS 10 *
-* END *
-*/
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package rsa;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+
+
+
+/**
+ *
+ * @author hp
+ */
+public class RSA {
+
+    /**
+     * @param args the command line arguments
+     * @throws java.io.IOException
+     */
+    public static void main(String[] args) throws IOException {
+        // TODO code application logic here
+        Scanner sc=new Scanner(System.in);//class to get user input
+        
+        ServerSocket m=new ServerSocket(2019); //creates server with port number
+        Socket s=m.accept();
+        DataInputStream d=new DataInputStream(s.getInputStream());
+        String x1=d.readLine();
+        String x2=d.readLine();
+        
+        int e,n;
+        e=Integer.parseInt(x1);
+        n=Integer.parseInt(x2);
+        System.out.println("Public Key Obtained from client{e,n}={"+ e +","+ n +"}");
+        
+        int Parr[]=new int[100];
+        String M;
+        
+        RSA obj =new RSA();
+        
+        System.out.println("Enter Plaintext:");
+        M=sc.nextLine();
+        Parr=obj.returnarr(M);
+        
+        BigInteger C[]=new BigInteger[100];
+        int C1[]=new int[n];
+        BigInteger n1;
+        System.out.println("\nSending Cipher Texts=\n");
+        for(int i=0;i<M.length();i++)
+        {
+            BigInteger M1;
+            n1=BigInteger.valueOf(n);
+            M1=BigInteger.valueOf(Parr[i]);
+            
+            C[i]=M1.pow(e);
+            C[i]=C[i].mod(n1);
+            System.out.println(C[i]+".");
+            C1[i]=C[i].intValue();
+        }
+        System.out.println("\n");
+        
+        Socket skt=new Socket("localhost",2020);
+        DataOutputStream out=new DataOutputStream(skt.getOutputStream());
+        out.writeInt(M.length());
+        for(int i=0;i<M.length();i++)
+            out.writeInt(C1[i]);
+    }
+
+     int[] returnarr(String m) {
+        int l=m.length();
+        int i;
+        char ch[]=m.toCharArray();
+        int arr[]=new int[100];
+        
+        for(i=0;i<l;i++)
+        {
+            arr[i]=(int)ch[i];
+        }
+        return arr;
+    }
+    
+}
 /*
-1 START 1 AD
-2 END 2 AD
-3 LTORG 3 AD
-4 EQU 4 AD	
-5 ORIGIN 5 AD
-6 DS 01 DL
-7 DC 02 DL
-8 MOVER 01 IS
-9 MOVEM 02 IS
-10 ADD 03 IS
-11 SUB 04 IS
-12 MULT 05 IS
-13 DIV 06 IS
-14 LOAD 07 IS
-15 PRINT 08 IS
-16 STOP 09 IS
-17 MOVE 10 IS
-18 READ 11 IS
-19 BC 12 IS*/
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
+//client
+package rsa;
 
-typedef struct alpstat
-{
-	char label[20];
-	char mnem[20];
-	char op1[20];
-	char op2[20];
-}alpstat;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.math.BigInteger;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
 
-typedef struct mot 						
-{
-	char srno[5];
-	char motmnem[20];
-	char opcode[5];
-	char class[20];
-}mot;
 
-typedef struct ic 
-{												
-	int add;
-	char icmnem[10];
-}ic;
-
-typedef struct symbol 								
-{
-	int sno;
-	int length;
-	int value;
-	int add;
-	char name[10];	
-}symbol;
-
-typedef struct literal									
-{
-	int lno;
-	int ladd;
-	char lname[10];
-}literal;
-
-typedef struct pt 											
-{
-	int pno;
-	int psi;
-}pt;
-
-int existsymbol(char sym[])						
-{
-	int flag,sno,add,len,val;
-	FILE *fsym;
-	symbol s;
-	
-	fsym=fopen("symbol.txt","r");
-	
-	flag=0;
-										
-	while(!feof(fsym))
-	{
-		fscanf(fsym,"%d%s%d%d%d",&sno,s.name,&add,&len,&val);
-		if(strcmp(s.name,sym)==0)
-		{
-			flag=1;
-			return sno;
-		}//if
-	}//while
-	if(flag==0)
-	{
-		return 0;
-	}//if	
-	fclose(fsym);
-}//existsymbol()
-
-int givenaddress(char sym[])			
-{
-	int flag,sno,len,val;
-	FILE *fsym;
-	symbol s;
-	
-	fsym=fopen("symbol.txt","r");	
-	flag=0;
-	
-		fscanf(fsym,"%d%s%d%d%d",&sno,s.name,&s.add,&len,&val);
-							
-	while(!feof(fsym))
-	{
-	
-		if(strcmp(s.name,sym)==0)
-		{
-			return s.add;
-		}//if	
-		fscanf(fsym,"%d%s%d%d%d",&sno,s.name,&s.add,&len,&val);
-	}//while
-	if(flag==0)
-	{
-		return 0;
-	}//if
-	fclose(fsym);
-}//givenaddress()
-
-void wsymbol(char sym[],int sno)					
-{
-	int flag;
-	FILE *fsym;
-	symbol s;	
-	
-	fsym=fopen("symbol.txt","a");	
-	
-	fprintf(fsym,"%2d%6s%4d%4d%4d\n",sno,sym,-1,-1,-1);	
-
-	fclose(fsym);
-}//wsymbol()
-
-void wsymbollabel(char op2[],int sno,int lc)	
-{
-	int flag;
-	FILE *fsym;
-	symbol s;	
-	fsym=fopen("symbol.txt","a");
-	
-	fprintf(fsym,"%2d%5s%4d%4d%4d\n",sno,op2,lc,-1,-1);	
-	
-	fclose(fsym);
-}//wsymbollabel
-
-int existliteral(char d[])								
-{
-	int flag,lno,add;
-	FILE *flit;
-	char lit[10];
-	
-	
-	flit=fopen("literal.txt","r");
-	
-	flag=0;
-									
-	while(!feof(flit))
-	{
-		fscanf(flit,"%d %s %d",&lno,lit,&add);	
-		if(strcmp(d,lit)==0)
-		{
-			flag=1;
-			return lno;
-		}//if
-	}//while
-	if(flag==0)
-	{
-		return 0;
-	}//if
-	
-	fclose(flit);
-}//existliteral()
-
-int ltorgliteral(char d[],int index)			
-{
-	int flag,lno,add;
-	FILE *flit;
-	char lit[10];
-		
-	flit=fopen("literal.txt","r");
-	
-	flag=0;
-							
-	while(!feof(flit))
-	{
-		fscanf(flit,"%d %s %d",&lno,lit,&add);
-		
-			if(strcmp(d,lit)==0 && lno>=index)			
-			{
-				flag=1;
-				return lno;
-			}//if
-	}//while
-	if(flag==0)
-	{
-		return 0;
-	}//if
-	
-	fclose(flit);
-}//ltorgliteral()
-
-void literalwrite(char lit[],int lno)				
-{
-	int flag;
-	FILE *flit;
-	symbol s;	
-	flit=fopen("literal.txt","a");	
-	fprintf(flit,"%2d%6s%4d\n",lno,lit,-1);	
-	fclose(flit);
-}//literalwrite()
-
-void symbolupdate(char d[],int addcur)	
-{
-	FILE *fsym,*new;
-	int sr,add,len,val;
-	char sym[30];
-
-		fsym=fopen("symbol.txt","r+");
-
-		fscanf(fsym,"%2d%6s%4d%4d%4d",&sr,sym,&add,&len,&val);
-		
-		while(!feof(fsym))
-		{
-			if(strcmp(sym,d)==0)
-			{
-				fseek(fsym,8+((sr-1)*21),0);
-				fprintf(fsym,"%4d",addcur);
-				break;	
-			}
-			
-			fscanf(fsym,"%2d%6s%4d%4d%4d",&sr,sym,&add,&len,&val);
-		}
-		fclose(fsym);
+public class RSA1 {
+    public static void main(String args[])throws IOException
+    {
+        Scanner sc= new Scanner(System.in);
+        int p,q,e;
+        String M;
+        System.out.println("Enter first prime Number:");
+        p=sc.nextInt();
+        for(int i=2;i<p;i++)
+        {
+            if(p%i==0)
+            {
+                System.out.println("Not a prime number, Enter prime no:");
+                p=sc.nextInt();
+                i=2;
+                
+            }
+        }
+        System.out.println("Enter second prime Number:");
+        q=sc.nextInt();
+        for(int i=2;i<q;i++)
+        {
+            if(q%i==0)
+            {
+                System.out.println("Not a prime number, Enter prime no:");
+                q=sc.nextInt();
+                i=2;
+                
+            }
+        }
+        int n=p*q;
+        int Q=(p-1)*(q-1);
+        RSA1 obj=new RSA1();
+        
+        e=obj.gete(Q);
+        if(obj.gcd(e,Q)==true)
+        {
+            int d,l;
+            d=obj.cald(e,Q);
+            System.out.println("\nPublic key{e,n}={"+e+","+n+"}");
+            System.out.println("\nPrivate key{d,n}={"+d+","+n+"}");
+            
+            Socket skt=new Socket("localhost",2019);
+            PrintStream ps=new PrintStream(skt.getOutputStream());
+            ps.println(e);
+            ps.println(n);
+            
+            int x2[]=new int[100];
+            
+            ServerSocket m=new ServerSocket(2020);
+            Socket s=m.accept();
+            DataInputStream data=new DataInputStream(s.getInputStream());
+            l=data.readInt();
+            System.out.println("\nCipher text Received");
+            for(int i=0;i<l;i++)
+            {
+                x2[i]=data.readInt();
+                System.out.print(x2[i]+",");
+            }
+            System.out.println("\n");
+            System.out.println("\nplain text decrypted using private key=");
+            BigInteger n1;
+            BigInteger P[]=new BigInteger[100];
+            for(int i=0;i<l;i++)
+            {
+                n1=BigInteger.valueOf(n);
+                BigInteger a=BigInteger.valueOf(x2[i]);
+                P[i]=a.pow(d);
+                P[i]=P[i].mod(n1);
+                System.out.print((char)P[i].intValue());
+                
+            }
+            System.out.println("\n");
+            
+            
+        }
+    }
+    int cald(int e,int Q)
+    {
+        int i=2;
+        while(((Q*i)+1)%e!=0)
+        {
+            i++;
+        }
+        return ((Q*i)+1)/e;
+    }
+    boolean gcd(int e,int Q)
+    {
+        while(Q!=e)
+        {
+            if(e>Q)
+            {
+                e=e-Q;
+            }
+            else
+            {
+                Q=Q-e;
+            }
+        }
+        return Q==1;
+    }
+    
+    int[] returnarr(String m)
+    {
+        int l=m.length();
+        int i;
+        char ch[]=m.toCharArray();
+        int arr[]=new int[100];
+        
+        for(i=0;i<l;i++)
+        {
+            arr[i]=(int)ch[i];
+        }
+        return arr;
+    }
+    
+    int gete(int Q)
+    {
+        int i=2;
+        RSA1 obj1=new RSA1();
+        while(obj1.gcd(i, Q)==false)
+            i++;
+        return i;
+    }
+    
 }
 
-void symboldsupdate(char d[],int value)
-{
-	FILE *fsym,*new;
-	int sr,add,len,val;
-	char sym[30];
-
-		fsym=fopen("symbol.txt","r+");
-		fscanf(fsym,"%d %s %d %d %d",&sr,sym,&add,&len,&val);
-			
-		while(!feof(fsym))
-		{	
-			if(strcmp(sym,d)==0)
-			{
-		fseek(fsym,12+((sr-1)*21),0);						
-				fprintf(fsym,"%4d",value);
-				break;	
-			}
-			
-			fscanf(fsym,"%d %s %d %d %d",&sr,sym,&add,&len,&val);
-		}
-		fclose(fsym);
-}
-
-void symboldcupdate(char d[],int cons)			
-{
-	FILE *fsym,*new;
-	int sr,add,len,val;
-	char sym[30];
-
-		fsym=fopen("symbol.txt","r+");
-		
-		fscanf(fsym,"%d %s %d %d %d",&sr,sym,&add,&len,&val);
-			
-		while(!feof(fsym))
-		{	
-			if(strcmp(sym,d)==0)
-			{
-	fseek(fsym,16+((sr-1)*21),0);							
-				fprintf(fsym,"%4d",cons);
-				break;	
-			}
-			fscanf(fsym,"%d %s %d %d %d",&sr,sym,&add,&len,&val);
-		}
-		fclose(fsym);		
-}
-
-
-int checksymbol()							
-{
-	int flag,sno,len,val;
-	FILE *fsym;
-	symbol s;
-	
-	fsym=fopen("symbol.txt","r");
-	flag=0;
-							
-	while(!feof(fsym))
-	{
-		fscanf(fsym,"%d %s %d %d %d",&sno,s.name,&s.add,&len,&val);
-		if(s.add==-1)
-		{
-			printf("\nSymbol is undefined\"%s\"\n",s.name);    
-			exit(0);
-		}
-	}
-	fclose(fsym);
-	return 1;
-}
-
-int literalupdate(int addcur,FILE *fic)						
-{		
-	FILE *flit;
-	int sr,add;
-	char sym[30];
-
-		flit=fopen("literal.txt","r+");
-		fscanf(flit,"%d%s%d",&sr,sym,&add);
-			
-		while(!feof(flit))
-		{
-			if(add==-1)
-			{
-			
-				fseek(flit,8+((sr-1)*13),0);					
-				fprintf(flit,"%4d",addcur);
-				
-				fprintf(fic,"\n");
-				fprintf(fic,"%d %s",addcur,sym);
-				
-				addcur+=1;
-			}
-			fscanf(flit,"%d %s %d",&sr,sym,&add);
-		}
-		fclose(flit);
-		return addcur;
-}
-
-void poolentry(int pno,int psi)						
-{	
-	FILE *fpool;
-	fpool=fopen("pool.txt","a");
-	fprintf(fpool,"%d #%d\n",pno,psi);
-	fclose(fpool);
-}
-
-int findpsi()										
-{
-	int pno,k,r=0,intdigit;
-	char psi[10],digit[20];
-	FILE *fp;
-	fp=fopen("pool.txt","r");
-	while(!feof(fp))
-		fscanf(fp,"%d %s",&pno,psi);
-
-	for(k=0;psi[k]!='\0';k++)
-	{
-	   if(isdigit(psi[k]))
-	   {
-			 digit[r]=psi[k];
-			  r+=1;
-	  }
-	  digit[r]='\0';
-	}
-	intdigit=atoi(digit);									
-	fclose(fp);
-	return intdigit;
-}
-
-int main()
-{
-	FILE *fsrc,*fmot,*fic,*fsym,*flit,*fpool,*fstr,*fltr;
-	alpstat l;
-	mot m;
-	ic i;
-	symbol s;	
-	literal lt;
-	pt p;
-	
-	int lc,flag=0,lit_pool,ch,j,flag1=0,syno,ltorgc=0,constant;
-	int q=0,k,intdigit,eqa,r=0,index,flag2=0;
-	char str[20],srno[10],sym[10],digit[5],eq[5];
-	char *str1,*str2;
-	s.sno=0;
-	lt.lno=0;
-	p.pno=0;
- 	p.psi=0;
- 	
- 	
-	fsrc=fopen("alp.txt","r");					
-	fmot=fopen("mot.txt","r");						
-	fic=fopen("ic.txt","w");					
-	
-	while(!feof(fsrc))
-	{
-		rewind(fmot);
-		fscanf(fsrc,"%s%s%s%s",l.label,l.mnem,l.op1,l.op2);
-		while(!feof(fmot))
-		{
-			if(strcmp(l.label,"*")!=0)						
-			{
-				if(s.sno==0)									
-				{
-					s.sno+=1;
-					wsymbollabel(l.label,s.sno,lc);	
-				}
-				else
-				{
-					if(existsymbol(l.label)==0)				
-					{
-						s.sno+=1;
-						wsymbollabel(l.label,s.sno,lc);
-					}
-					else
-					{
-						if(givenaddress(l.label)==-1)		
-						{
-							symbolupdate(l.label,lc);
-						}
-					}
-				}
-			}
-			fscanf(fmot,"%s%s%s%s",m.srno,m.motmnem,m.opcode,m.class);			
-			if(strcmp(l.mnem,m.motmnem)==0)
-			{
-				if(strcmp(m.class,"AD")==0)											
-				{				
-					if(strcmp(m.motmnem,"START")==0)							
-					{
-						lc=atoi(l.op1);											
-						fprintf(fic,"-- (%s,%s) (c,%s) (-,-)",m.class,m.opcode,l.op1);
-				      p.pno+=1;															
-						p.psi+=1;
-						poolentry(p.pno,p.psi);											
-						lit_pool=0;
-						break;
-					}
-					else
-					{
-						if(strcmp(m.motmnem,"LTORG")==0)							
-						{
-							ltorgc+=1;												
-					p.pno+=1;														
-							p.psi=p.psi+lit_pool;
-							poolentry(p.pno,p.psi);
-							lit_pool=0;
-							fprintf(fic,"-- (%s,%s) (-,-) (-,-)",m.class,m.opcode);
-							lc=literalupdate(lc,fic);									
-							break;				
-						}
-						else
-						{
-							if(strcmp(m.motmnem,"END")==0)
-							{				
-								fprintf(fic,"--- (%s,%s) (-,-) (-,-)",m.class,m.opcode);
-								lc=literalupdate(lc,fic);
-								break;
-							}
-							else
-							{
-								if(strcmp(m.motmnem,"EQU")==0)						
-								{
-									intdigit=0;
-									flag2=0;
-									sym[0]='\0';
-									digit[0]='\0';
-									
-									if(strstr(l.op1,"+"))
-									{
-										str1=strtok(l.op1,"+");	
-										str2=strtok(NULL,"+");
-										strcpy(sym,str1);
-										strcpy(digit,str2);
-										intdigit=atoi(digit);
-										flag2=1;
-									}
-									else
-									{
-										strcpy(sym,l.op1);
-									}																			
-									if(existsymbol(sym)!=0)
-									{
-										if(flag2==1)
-									fprintf(fic,"--- (%s,%s) (S,%d)+%d (-,-)",m.class,m.opcode,existsymbol(sym),intdigit);
-									else
-									fprintf(fic,"--- (%s,%s) (S,%d) (-,-)",m.class,m.opcode,existsymbol(sym));
-												
-									if(givenaddress(sym)!=-1)
-											{
-											    eqa=givenaddress(sym);		
-											    eqa=eqa+intdigit;
-											    symbolupdate(l.label,eqa);
-											}
-											else
-											{
-											    printf("\n>>>Symbol \"%s\" doesn't have address\n",sym);		
-											    flag=1;
-											}				        			
-										}
-							else
-							{
-							   printf("\n>>>Symbol \"%s\" Is Unknown\n",sym);							
-							   flag=1;
-						        }									    
-							   break;
-						}
-							else
-							{
-							if(strcmp(m.motmnem,"ORIGIN")==0)				
-							{
-									intdigit=0;
-									flag2=0;
-									sym[0]='\0';
-									digit[0]='\0';
-			
-									if(strstr(l.op1,"+"))
-									{
-										str1=strtok(l.op1,"+");
-										str2=strtok(NULL,"+");
-										strcpy(sym,str1);
-										strcpy(digit,str2);
-										intdigit=atoi(digit);
-										flag2=1;
-									}
-									else
-									{
-										strcpy(sym,l.op1);
-									}
-																		
-									if(existsymbol(sym)!=0)
-									{
-									if(flag2==1)
-									fprintf(fic,"--- (%s,%s) (S,%d)+%d (-,-)",m.class,m.opcode,existsymbol(sym),intdigit);
-										else
-										fprintf(fic,"--- (%s,%s) (S,%d) (-,-)",m.class,m.opcode,existsymbol(sym));
-													
-											if(givenaddress(sym)!=-1)
-											{
-											    eqa=givenaddress(sym);
-											    eqa=eqa+intdigit;
-      										            lc=eqa;								
-											}
-										else
-										{
-									         printf("\n>>>Symbol \"%s\" doesn't have Address\n",sym);
-											    flag=1;
-											}								
-										}
-									else
-									{
-									    printf("\n>>>Symbol \"%s\" Is Unknown\n",sym);  
-									    flag=1;
-									}
-									break;
-								}
-								}
-							}
-						}
-						fprintf(fic,"--- (%s,%s) (-,-) (-,-)",m.class,m.opcode);
-						break;
-					}
-				}	
-				else
-				{
-					fprintf(fic,"%d (%s,%s) ",lc,m.class,m.opcode);
-					lc+=1;
-					
-					if(strcmp(m.class,"DL")==0)
-					{
-						if(strcmp(m.motmnem,"DS")==0)					
-						{
-							constant=atoi(l.op1);
-							symboldsupdate(l.label,constant);
-							lc+=constant;
-						}
-						else
-						{
-							if(strcmp(m.motmnem,"DC")==0)				
-							{
-								constant=atoi(l.op1);
-								symboldcupdate(l.label,constant);
-							}
-						}
-					}
-					if(strcmp(l.op1,"*")!=0 && strcmp(l.op2,"*")!=0)
-					{	
-						
-							if(strcmp(l.op1,"AREG")==0)
-								fprintf(fic,"(R,1)");
-							else
-							if(strcmp(l.op1,"BREG")==0)
-								fprintf(fic,"(R,2)");
-							else
-							if(strcmp(l.op1,"CREG")==0)
-								fprintf(fic,"(R,3)");
-							else
-							if(strcmp(l.op1,"DREG")==0)
-								fprintf(fic,"(R,4)");
-							else
-							if(strcmp(l.op1,"EQ")==0)
-								fprintf(fic,"(01) ");
-							else
-							if(strcmp(l.op1,"NE")==0)
-								fprintf(fic,"(02) ");
-							else
-							if(strcmp(l.op1,"LT")==0)
-								fprintf(fic,"(03) ");
-							else
-							if(strcmp(l.op1,"GT")==0)
-								fprintf(fic,"(04) ");
-							else
-							if(strcmp(l.op1,"LE")==0)
-								fprintf(fic,"(05) ");
-							else
-							if(strcmp(l.op1,"GE")==0)
-								fprintf(fic,"(06) ");	
-								
-							if(strstr(l.op2,"="))			
-								{
-									if(lt.lno==0)			
-									{
-										lt.lno+=1;
-										literalwrite(l.op2,lt.lno);
-										fprintf(fic," (L,%d)",lt.lno);
-										lit_pool+=1;
-									}
-									else
-									{
-										if(ltorgc==0)			
-										{
-											if(existliteral(l.op2)==0)
-											{
-												lt.lno+=1;
-												literalwrite(l.op2,lt.lno);
-												fprintf(fic," (L,%d)",lt.lno);
-												lit_pool+=1;
-											}
-											else
-												fprintf(fic," (L,%d)",existliteral(l.op2));
-										}
-										else
-										{
-											index=findpsi();			
-										
-											if(index==lt.lno+1)			 
-											{
-												lt.lno+=1;
-												literalwrite(l.op2,lt.lno);		
-												fprintf(fic," (L,%d)",lt.lno);		
-												lit_pool+=1;
-											}
-											else
-											if(ltorgliteral(l.op2,index)==0) 
-											{
-												lt.lno+=1;
-												literalwrite(l.op2,lt.lno);
-												fprintf(fic," (L,%d)",lt.lno);
-												lit_pool+=1;
-											}
-											else
-												fprintf(fic," (L,%d)",ltorgliteral(l.op2,index));
-										}
-									}
-								}	
-								else				
-								{	
-									if(s.sno==0)
-									{
-										s.sno+=1;
-										wsymbol(l.op2,s.sno);
-										fprintf(fic," (S,%d)",s.sno);
-									}
-									else
-									{
-										if(existsymbol(l.op2)==0)
-										{
-											s.sno+=1;
-											wsymbol(l.op2,s.sno);
-											fprintf(fic," (S,%d)",s.sno);
-										}
-										else
-											fprintf(fic," (S,%d)",existsymbol(l.op2));
-									}
-									break;
-								}					
-						break;								
-					}
-					if(strcmp(l.op1,"*")!=0 && strcmp(l.op2,"*")==0)	
-					{
-						strcpy(str,l.op1);
-						for(j=0;str[j]!='\0';j++)
-						{
-							if(isalpha(str[j]))						 
-							{
-								ch=1;
-								break;
-							}
-							else
-								ch=0;		
-						}
-						if(ch==0)									
-						{
-							fprintf(fic,"(C,%s) (-,-)",l.op1);
-							break;
-						}					
-						{
-							if(s.sno==0)
-							{
-								s.sno+=1;
-								wsymbol(l.op1,s.sno);
-								fprintf(fic,"(S,%d) (-,-)",s.sno);
-							}
-							else
-							{
-								if(existsymbol(l.op1)==0)
-								{
-									s.sno+=1;
-									wsymbol(l.op1,s.sno);
-									fprintf(fic,"(S,%d) (-,-)",s.sno);
-								}
-								else
-									fprintf(fic," (S,%d)",existsymbol(l.op1));
-							}
-						}
-						break;
-					}
-					fprintf(fic,"(-,-) (-,-)");		
-					break;
-				}
-			}
-		if(feof(fmot))									
-			{
-				printf("\nInvalid Mnemonic \"%s\"\n",l.mnem);
-				exit(0);
-				flag=1;
-				break;
-			}
-		}
-	fprintf(fic,"\n");		
-	}
-		
-	fclose(fsrc);										
-	fclose(fmot);
-	fclose(fic);
-	if(flag==0 && checksymbol()==1)											
-	{
-		printf("\nPass-I Done Succesfully");
-	
-	}
-	return 0;
-}//main
+*/
