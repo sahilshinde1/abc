@@ -1,0 +1,88 @@
+library(arules)
+library(arulesViz)
+
+
+
+#if error
+#install.packages("arules", dependencies = TRUE)
+
+#install.packages("arulesViz", dependencies = TRUE)
+
+
+
+
+library(datasets)
+data(Groceries)
+
+str(Groceries) #display Structure of
+
+#inspect(Groceries)
+
+
+#read.transactions(file.choose(),header=TRUE/FALSE)
+
+
+
+
+#use default dataset and acces its 20 values for analysis only
+itemFrequencyPlot(Groceries,topN=20,type="absolute")
+
+
+
+#call first rule
+rules <- apriori(Groceries, parameter = list(supp = 0.001, conf = 0.8))
+options(digits=4)
+inspect(rules[1:29])
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+
+
+
+help("apriori")
+
+
+#call 2nd rule
+rules <- apriori(Groceries, parameter = list(supp = 0.001, conf = 0.7,maxlen=3))
+
+
+
+
+#create matrix of rules
+subset.matrix <- is.subset(rules, rules)
+help("is.subset")
+
+#check matrix value
+subset.matrix[lower.tri(subset.matrix, diag=T)] <- NA
+
+#colSums(subset.matrix[,0:3], na.rm=T) > 1
+
+
+redundant <- colSums(subset.matrix, na.rm=T) >= 1
+rules.pruned <- rules[!redundant]
+rules<-rules.pruned
+
+
+rules<-apriori(data=Groceries, parameter=list(supp=0.001,conf = 0.08),  appearance = list(default="lhs",rhs="whole milk"), control = list(verbose=F))
+
+rules<-sort(rules, decreasing=TRUE,by="confidence")
+
+inspect(rules[1:5])
+
+rules<-apriori(data=Groceries, parameter=list(supp=0.001,conf = 0.15,minlen=2), appearance = list(default="rhs",lhs="whole milk"),control = list(verbose=F))
+
+rules<-sort(rules, decreasing=TRUE,by="confidence")
+
+inspect(rules)
+
+
+
+
+#plot graph of rules
+plot(rules,method="graph",shading=NA)   
+
+
+#plot(rules,method="graph",engine=interactive,shading=NA)
+
+
+
+
+
