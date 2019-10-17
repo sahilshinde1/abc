@@ -1,180 +1,68 @@
-/*
--- (AD,01) (c,200) (-,-)
-200 (IS,01) (R,1) (L,1)
-201 (IS,02) (R,1) (S,1)
-202 (IS,01) (R,1) (S,1)
-203 (IS,01) (R,3) (L,2)
-204 (IS,03) (R,3) (L,2)
-205 (IS,12) (06)  (S,3)
--- (AD,03) (-,-) (-,-)
-206 ='5'
-207 ='1'
-208 (IS,04) (R,1) (L,3)
-209 (IS,12) (03)  (S,4)
-210 (IS,09) (-,-) (-,-)
-211 (IS,04) (R,1) (L,4)
---- (AD,05) (S,2)+2 (-,-)
-204 (IS,05) (R,3) (S,6)
--- (AD,03) (-,-) (-,-)
-205 ='1'
-206 ='2'
---- (AD,05) (S,5)+1 (-,-)
---- (AD,04) (S,2) (-,-)
--- (AD,03) (-,-) (-,-)
-211 (IS,01) (R,1) (L,5)
-212 (DL,02) (C,10) (-,-)
-213 (DL,01) (C,10) (-,-)
---- (AD,02) (-,-) (-,-)
-224 ='2'
+package mlassgn;
 
-*/
-/*
- 1     A 212  -1  10
- 2 LOOP 202  -1  -1
- 3  NEXT  208 -1  -1
- 4  BACK  202 -1  -1
- 5 LAST 210  -1  -1
- 6     B   213  10-1
 
-*/
-/*
-1  ='5' 206
-2  ='1' 207
-3  ='1' 205
-4  ='2' 206
-5  ='2' 224
-*/
-#include<stdio.h>
-#include<unistd.h>
-#include<string.h>
+import weka.core.Instances;
+//import weka.classifiers.*;
+import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.evaluation.*;//Evaluation;
 
-typedef struct icode{
-	char address[10];
-	char mnemonics[10];
-	char operand1[10];
-	char operand2[10];
-}icode;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.lang.Exception;
 
-typedef struct symbol{
-	int serial_no;
-	char symbol_name[10];
-	int address;
-	int length;
-	int value;
-}symbol;
-
-typedef struct literal{
-	int serial_no;
-	char literal_name[10];
-	int address;
-}literal;
-
-int search_symtbl(int iop11)
+public class prg2
 {
-	int addr=-1;
-	FILE *fsym;
-	symbol sym;
-	fsym=fopen("symbol1.txt","r");
-	fscanf(fsym,"%d %s %d %d %d",&sym.serial_no,sym.symbol_name,&sym.address,&sym.length,&sym.value);
-	while(!feof(fsym))
+	public prg2()
 	{
-		if(sym.serial_no==iop11)
+		try
 		{
-			addr=sym.address;
-			break;
-		}				
-	fscanf(fsym,"%d %s %d %d %d",&sym.serial_no,sym.symbol_name,&sym.address,&sym.length,&sym.value);
-	}						
-	fclose(fsym);
-	return addr;				
-}
+			BufferedReader trainReader = new BufferedReader(new FileReader("/home/administrator/Desktop/IDSTr.arff"));//File with text examples
+			BufferedReader classifyReader = new BufferedReader(new FileReader("/home/administrator/Desktop/IDSTest.arff"));//File with text to classify
 
-int main()
-{
-	FILE *fsym,*fic,*flit,*ftc;
-	icode ic;
-	symbol sym;
-	literal lit;
-	int i,addr,iop11,addr2,iop22;
-	char m1[20],m2[3],mnem[3],op1[2],op11[2],op2[2],op22[2];
 
-	ftc=fopen("tc.txt","w");
-	fic=fopen("ic2.txt","r");
-	fscanf(fic,"%s %s %s %s",ic.address,ic.mnemonics,ic.operand1,ic.operand2);
-	while(!feof(fic))
-	{
-		if(ic.mnemonics[0]!='=')
-		{
-			strcpy(m1,(strtok(ic.mnemonics,",")));	
-			if(strcmp(m1,"(IS")==0)
+			Instances trainInsts = new Instances(trainReader);
+			Instances classifyInsts = new Instances(classifyReader);
+
+			trainInsts.setClassIndex(trainInsts.numAttributes() - 1);
+			classifyInsts.setClassIndex(classifyInsts.numAttributes() -1);
+
+			NaiveBayes model=new NaiveBayes();
+			model.buildClassifier(trainInsts);
+			//System.out.println(model);
+			Evaluation eTest = new Evaluation(classifyInsts);
+			eTest.evaluateModel(model, classifyInsts);
+			String[] cmarray = {"normal","anomaly"};
+			ConfusionMatrix cm = new ConfusionMatrix(cmarray);
+			//System.out.println(cm.correct());
+
+			for (int i = 0; i < classifyInsts.numInstances(); i++)
 			{
-				strcpy(m2,(strtok(NULL,")")));
-				m2[strlen(m2)]='\0';
-				if(strcmp(ic.operand1,"*")!=0)
-				{			
-					if(ic.operand1[2]==',')
-					{
-						strcpy(op1,strtok(ic.operand1,","));
-						strcpy(op11,strtok(NULL,")"));
-						iop11=atoi(op11);
-						if(op1[1]=='S')
-							addr=search_symtbl(iop11);
-						else
-							addr=iop11;
-					}
-					else 
-					{
-						for(i=1;i<=2;i++)
-							op1[i-1]=ic.operand1[i];
-						op1[i-1]='\0';
-						addr=atoi(op1);
-					}
-					if(strcmp(ic.operand2,"*")!=0)
-					{						
-						strcpy(op2,strtok(ic.operand2,","));
-						strcpy(op22,strtok(NULL,")"));
-						iop22=atoi(op22);
-
-						if(op2[1]=='S')
-							addr2=search_symtbl(iop22);
-						else 
-						{
-							flit=fopen("literal1.txt","r");
-							fscanf(flit,"%d %s %d",&lit.serial_no,lit.literal_name,&lit.address);
-							while(!feof(flit))
-							{
-								if(lit.serial_no==iop22)
-								{
-									addr2=lit.address;
-									break;
-								}
-								fscanf(flit,"%d %s %d",&lit.serial_no,lit.literal_name,&lit.address);
-							}
-							fclose(flit);
-						}//else lit
-						printf("\n%s",mnem);
-						fprintf(ftc,"%4d %10s %4d %4d\n",atoi(ic.address),m2,addr,addr2);
-					}//op2!=*
-					else
-						fprintf(ftc,"%4d %10s %4d    -\n",atoi(ic.address),m2,addr);
-				}//op1!=*
-				else
-					fprintf(ftc,"%4d %10s    -    -\n",atoi(ic.address),m2);
-			}//if IS
-			else if(strcmp(m1,"(DL")==0)	
-			{
-				strcpy(op1,strtok(ic.operand1,","));   
-				strcpy(op11,strtok(NULL,")"));   
-				iop11=atoi(op11);  
-				fprintf(ftc,"%4d          0 %4d    -\n",atoi(ic.address),addr);    
+				classifyInsts.instance(i).setClassMissing();
+				double cls = model.classifyInstance(classifyInsts.instance(i));
+				classifyInsts.instance(i).setClassValue(cls);
 			}
-		}//if
-		else
-			fprintf(ftc,"%4d %10s    -    -\n",atoi(ic.address),ic.mnemonics);	
-		
-		fscanf(fic,"%s %s %s %s",ic.address,ic.mnemonics,ic.operand1,ic.operand2);
-	}//while fic
-	fclose(fic);
-	fclose(ftc);
-	return 0;
+			System.out.println("Error Rate: "+eTest.errorRate()*100);
+			System.out.println("Pct Correct: "+eTest.pctCorrect());
+			for (int i=0; i<trainInsts.numClasses(); i++){
+				System.out.println("Class "+ i);
+				System.out.println("	Precision " +eTest.precision(i));
+				System.out.println("	Recall "+eTest.recall(i));
+				System.out.println("	Area under ROC "+eTest.areaUnderROC(i));
+				System.out.println();
+			}
+			//System.out.println(classifyInsts);
+		}
+		catch (Exception o)
+		{
+			System.err.println(o.getMessage());
+		}
+	}
+
+
+
+	public static void main(String[] args) {
+		prg2 nb = new prg2();
+	}
+
 }
